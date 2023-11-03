@@ -1,5 +1,5 @@
 # Protecting Cloud Storage
-<p style="text-indent: 25px;">*Layering E2E encryption on cloud storage services ... or ... using DIDComm with just one peer.*
+*Layering E2E encryption on cloud storage services ... or ... using DIDComm with just one peer.*
 <BR>
 <BR>
 ## Background
@@ -12,11 +12,11 @@ The purpose of this tutorial is to demonstrate how individual users can (indepen
 Most contemporary cloud storage providers have implemented a similar client-server architecture whereby a locally-installed *Cloud Storage Client* monitors a designated file folder on user's computer(s) for changes.  When changes are detected, they are replicated up to the user's account on the cloud provider's server.  From there, the changes are replicated to the user's other devices.  Here's an overview of how this process works:
 
 ![Cloud Storage Overview](./images/cloud_storage_overview.png)
-<center>Figure 1 - Cloud Storage Overview</center>
+*Figure 1 - Cloud Storage Overview*
 
 While in-depth knowledge of particular tools is not required for this tutorial, it is helpful if readers a cursory awareness of Decentralized Identity, including [Decentralized Identifiers](https://www.w3.org/TR/did-core/), [Verifiable Credentials](https://www.w3.org/TR/vc-data-model-2.0/), [Digital Wallets](https://openwallet.foundation), etc.  
-
 <BR>
+
 ## Motivations
 Leading up to this tutorial, I had a few motivating questions:
 
@@ -26,30 +26,28 @@ Leading up to this tutorial, I had a few motivating questions:
 4. How will adding E2EE as presented below change the cloud storage service experience?
 
 The answer to the first 3 questions is "Absolutely!"  With question #4, there are some tradeoffs to be considered and that will take some discussion, which I will leave that to the end.
-
 <BR>
-## Tutorial Exclusions
 
+## Tutorial Exclusions 
 The purpose of this tutorial is to show how cloud storage services can be protected by adding additional (described below) synchronization and cryptographic processes.  While encryption key management and key storage wallets are <u>critical</u> in deployment scenarios, they are *beyond the scope of this tutorial* ... at least at this time.  With that in mind, you will notice that I am intentionally using obviously weak keys (e.g., "000...") and the same DID for everything.  While I'm hoping that you will find this tutorial insightful and choose to extend it, please don't deploy it on live data in its current state.  *You have been warned.  :-)*
-
-
 <BR>
+
 ## Super Quick Intro to DIDComm
 According to the [DIDComm Spec](https://identity.foundation/didcomm-messaging/spec/v2.0/), *"The purpose of DIDComm Messaging is to provide a secure, private communication methodology built atop the decentralized design of [DIDs](https://www.w3.org/TR/did-core/)."*. At a high level, DIDComm describes a JSON formatted message that can be transmitted from the sender to the receiver:
 
 ![DIDComm Overview](./images/didcomm_overview.png)
-<center>Figure 2 - DIDComm Messaging Overview</center>
+*Figure 2 - DIDComm Messaging Overview*
 
 When E2E encrypted, the DIDComm message format keeps only the essential delivery information in plaintext with everything else (e.g., body, attachments) encrypted from the recipient to the sender.  For simplicity and versatility, the DIDComm message format will be used to encrypt files as they are prepared to be synchronized from a local folder to the cloud storage service.
-
 <BR>
+
 ## Internet Communications:  *Store and Forward*
 Communications on the internet are largely based on the *store & forward* paradigm.  In this paradigm, when messages are routed from sender to receiver, they are often stored on a mediator along the way before they are subsequently forwarded to the recipient.  This tutorial implements a variation of this paradigm which will *store (for an arbitrarily long time) and forwards (later)*.
 
 ![Store and Forward](./images/store_and_forward.png)
-<center>Figure 3 - Store and Forward with Indefinite Storage</center>
-
+*Figure 3 - Store and Forward with Indefinite Storage*
 <BR>
+
 ## Extending the Cloud Storage Synchronization Method
 In contemporary cloud storage synchronization paradigms, the cloud storage service installs a Cloud Storage Client service on the user's device.  This Cloud Storage Client detects changes in a monitored folder and synchronizes them with the user's cloud storage account on the Cloud Storage Server.  The Cloud Storage Server, in turn, synchronizes those changes with the user's other devices.
 
@@ -60,9 +58,9 @@ When new or modified files are detected in the User's Plaintext Folder, the corr
 What's neat about this process is that it operates completely independent of the cloud service provider's architecture or implementation choices, because it relies on the host's file system capabilities instead of the cloud storage provider's API.  This offers a lot of flexibility in the type of encryption that is used and it also makes the encryption transparent to any application reading or writing from the User's Plaintext Folder.  This is also what makes this service easily interchangeable between Dropbox, Apple's iCloud, Google Drive, Microsoft's OneDrive, or any other cloud storage service with a host file system interface.
 
 ![Cloud Storage with Userside Synchronization](./images/cloud_storage_with_userside_synchronization.png)
-<center>Figure 4 - Cloud Storage with Userside Synchronization</center>
-
+*Figure 4 - Cloud Storage with Userside Synchronization*
 <BR>
+
 ## File Formatting:  Why DIDComm?
 As files are encrypted, I chose to use the [DIDComm](https://didcomm.org) messaging format.  Admittedly, this is not the most concise format for storing files and it contains additional (unnecessary?) message routing functionality, so why would I choose it for file storage? 
 
@@ -73,8 +71,8 @@ Secondly, I think that there may be some hidden uses cases for which having embe
 However, even privacy-centric users may want unrestricted access to their digital content to be granted to their heirs, someday.  Since DIDComm inherently facilitates multiple recipients, a user could setup a stored file (i.e., DIDComm message) that is addressed to themselves for their own ongoing usage, but also be addressed to the Decentralized Identifiers of their heirs.  Setting up file storage in this manner would keep the file content hidden from the cloud storage provider, let users continue using their own data, and have the data *pre-addressed* it to their heirs.  The only step required of a cloud storage provider would be to deliver the stored files (i.e., DIDComm encrypted) to the heirs upon presentation of a valid Death Certificate, Last Will and Testament, etc.  Whereas other survivable encryption methods would allow the cloud storage platform providers to have plaintext access to a user's files or access to their encryption keys, this method works with only the user and their heirs being able to access protected content.
 
 There are a number of other use cases that would benefit from DIDComm protected messaging formats, but that's a different discussion.  So, back to the tutorial...
-
 <BR>
+
 ## File Formatting:  What does it look like?
 
 DIDComm formatted messages are presented as plaintext JSON formatted structures.  For cryptographic security, DIDComm messages protect their sensitive components using a variety of [elliptic curves and encryption methods](https://identity.foundation/didcomm-messaging/spec/v2.0/#curves-and-content-encryption-algorithms), such as AES256-GCM, AES256-CBC with an HMAC-SHA512, etc.  The elliptic curves currently used include X25519, P-384, P256, and P-521.  As quantum encryption methods are finalized, it is foreseen that those algorithms will be quickly adopted into a future iteration of the formal [DIDComm Messaging](https://identity.foundation/didcomm-messaging/spec/v2.0/) Specification. 
@@ -104,17 +102,17 @@ An encrypted DIDComm message looks like this:
 		"iv":"2jBWPDXxzTcFWBVx_jGnTXf8p5ANi4rJ",
 		"tag":"6wQn2QSRhnVq4qRUC-dP2Q"
 	}
-<center>Figure 5 - Sample Encrypted DIDComm Message</center>
+*Figure 5 - Sample Encrypted DIDComm Message*
 
 The format of the files encrypted using the process described in this tutorial is implemented using the DIDComm message format, such as that illustrated above.
-
 <BR>
+
 ### Encrypted File Naming 
 Creating a name for an encrypted file is not as simple as encrypting it.  One reason is that, depending on the encryption algorithm, ciphertext lengths are not always the same as the plaintext length.  In some circumstances, this could result in encrypted filename lengths being longer than the maximum allowed by the system.  
 
 In order to avoid these types of situations, ciphertext file names will be encoded as an HMAC256 of the plaintext filename and then will be base58 encoded.  HMAC256 provides sufficient protection and ensures a limited length while the base58 encoding ensures that no special characters are in the resulting name text.
-
 <BR>
+
 ### File Management Dilemma 
 Using the DIDComm message format greatly simplifies the implementation of extensible encrypted file storage.  When the User's Encryption Sync App (described above in Figure 4), detects file changes in the User's Plaintext Folder, it will handle them like this:
 
@@ -139,8 +137,8 @@ When the User's Encryption Sync App detects changes in the Provider Folder (i.e.
 <BR>
 <li><B>Deleted File:</B>  When an encrypted file is deleted from the Cloud Storage Provider's cloud, that file delete action is replicated on the user's device resulting in the encrypted file being deleted from the Provider Folder.  By the time that the User's Encryption Sync App detects that an encrypted file has been deleted, it has already been deleted.  This means that the filename cannot be decrypted (using any information contained within the file) to know which corresponding plaintext file to delete.  <i>This situation requires special handling.</i></li> 
 </ol>
-
 <BR>
+
 ### Adding a New File Header
 Handling the case where encrypted files are deleted before their plaintext counterparts (as described above) is best handled with the addition of a new file header that will be placed before the DIDComm message in the encrypted file.
 
@@ -161,8 +159,8 @@ The file header has 3 members:
 </ol>
 
 This header implements the functionality described above.  It also allows the easy decryption and recognition of the target plaintext file.
-
 <BR>
+
 ### Deleting the Plaintext File When the Encrypted File Has Already Been Deleted
 When deleting a plaintext file associated with an encrypted file that has already been deleted, it is necessary to search for the plaintext file, since it is not possible to go directly to it.  The algorithm for locating the plaintext file is as follows:
 
@@ -199,7 +197,7 @@ When deleting a plaintext file associated with an encrypted file that has alread
 		
 	return file_to_delete;
 }</code></pre>
-<center>Figure 6 - Calculating the plaintext filename associated with an encrypted filename.</center>
+*Figure 6 - Calculating the plaintext filename associated with an encrypted filename.*
 
 The method described above essentially searches for the corresponding plaintext filename by encrypting / base58 encoding it and comparing the encrypted filename that was deleted.  While this method is not as fast as directly decrypting an encrypted filename, however, it handles the case of needing to match a plaintext file to an encrypted file that has already been deleted. 
 
@@ -233,9 +231,9 @@ With pretty printing applied, the full DIDComm encrypted message with the added 
 		"iv":"2jBWPDXxzTcFWBVx_jGnTXf8p5ANi4rJ",
 		"tag":"6wQn2QSRhnVq4qRUC-dP2Q"
 	}
-<center>Figure 7 - DIDComm Encrypted File With Header </center>
-
+*Figure 7 - DIDComm Encrypted File With Header*
 <BR>
+
 ## Getting Started with Code...
 To this point, I've highlighted some of the strengths of cloud storage while also showing some of their security and privacy weaknesses.  By implementing a user-controlled encryption / decryption service on a user's own device(s), a user can leverage many of the benefits of cloud storage (e.g., data replication, disaster recovery, file synchronization) while also controlling for themselves access to the files they store.
 
@@ -248,8 +246,8 @@ Here is a quick overview of the main code elements:
 * **User Encryption Sync:**  due to the high performance file monitoring and manipulation capabilities provided by Java's NIO package, the User Encryption Sync monitoring service will be written in Java.  It will import the DIDComm Communications Library and access it via the Kotlin wrapper interface.
 
 To get started, create a new directory called `protecting_cloud_storage` and we'll do all the work in there.
-
 <BR>
+
 ### DIDComm Communications Library 
 To create the DIDComm Communications Library (in Rust), open a terminal and enter the following:
 
@@ -1171,8 +1169,8 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 ```
 
 If you see that, then *Congratulations!* the library is built and working.
-
 <BR>
+
 ### Building the Uniffi Library Wrapper
 Now it's time to use uniffi to make a Kotlin language wrapper.  For a refresher on how to make uniffi wrappers, (specifically, the Kotlin wrapper), please see my [Kotlin Uniffi tutorial](https://github.com/sudoplatform-labs/ffi-tutorials/tree/main/Wrapper_Java_Kotlin).  That tutorial will walk through how to create a Kotlin wrapper from a Rust library and then import it into a Java application.
 
@@ -1276,12 +1274,12 @@ src/uniffi/didcomm_communications/didcomm_communications.kt:261:18: warning: thi
 ```
 
 Now we have a Rust library with a Kotlin wrapper that is packaged as a Java .jar file!  Very cool!
-
 <BR>
+
 ### User Encryption Sync
 With all of the previous work done, now we can create the Java file synchronization application.
-
 <BR>
+
 #### Get All The Dependencies
 
 Please go to `./protecting_cloud_storage` and create a sub-directory called `user_encryption_sync`.  Now, go into `user_encryption_sync` and create a sub-directory called `src`.  Go into `src`.
@@ -1309,9 +1307,9 @@ mv libdidcomm_communications.dylib libuniffi_didcomm_communications.dylib
 Now, we need to get the Kotlin standard library (kotlin-stdlib-1.8.21.jar) from [here](https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib/1.8.21) and add it to our `.src` directory.
 
 With all of the dependencies built, copied, and installed, we are ready to build `UserEncryptionSync` ... just as soon as we build it.
-
 <BR>
-####Writing the UserEncryptionSync.java Application
+
+#### Writing the UserEncryptionSync.java Application
 
 In the `./src` sub-directory, please open a new file called `UserEncryptionSync.java`.
 
@@ -1850,10 +1848,10 @@ Using two separate threads, controlled by a shared semaphore, enables them to op
         }
     }
 ```
-
-
 <BR>
-####Building the UserEncryptionSync Application
+
+#### Building the UserEncryptionSync Application
+
 In order to build a Java application, Java must be installed.  Likely, some version of Java has been installed with your operating system.  However, if not, I created this tutorial using Java version 19.0.1, which is available [here](https://www.oracle.com/java/technologies/javase/jdk19-archive-downloads.html#:~:text=Go%20to%20the%20Oracle%20Java,on%20the%20JavaTM%20platform.).  If you have a newer version, it may work, but this is the version that I used.
 
 To build the UserEncryptionSync application, please go into the `.src` sub-directory and type:
@@ -1861,8 +1859,8 @@ To build the UserEncryptionSync application, please go into the `.src` sub-direc
 ```
 javac -cp didcomm_communications.jar UserEncryptionSync.java
 ```
-
 <BR>
+
 ## Running the User Encryption Sync Application
 Congratulations on building everything!  Now, it's time to run the application.  To do so, enter the following:
 
@@ -1906,11 +1904,13 @@ In the first instance, plaintext files in test1 are being *encrypted* and synchr
 Here is an example of the type of output you should see on MacOS:
 
 ![Encrypted and Decrypted Folders](./images/encrypted_and_decrypted_folders.png)
+*Figure 8 - Encrypted and Decrypted Folders*
 
 Terminating operation can be done by pressing Ctrl+C at the terminal where the application was launched or by identifying the Java application threads in the system's task manager.
-
 <BR>
-###What About Actual Cloud Storage?
+
+### What About Actual Cloud Storage?
+
 Cloud storage providers typically have a dedicated folder on the local file system that they create when they are installed.  They monitor this folder for changes, which they relay to the cloud server.  They also convey changes from the user's folder on the cloud server and apply those to the file they are monitoring on the local file system.
 
 As an example, Dropbox often creates a directory in this path:
@@ -1926,8 +1926,8 @@ Whichever folder the cloud storage provider has created, this is the one you wil
 The same goes for the user's local plaintext folder to be monitored.  That can be whichever folder you choose and should also be specified on the command line when launching UserEncryptionSync.
 
 One caveat.  In its current form, the main() function in UserEncryptionSync.java takes the 2 folders to be monitored as command line parameters.  As is, main() will take the directories specified and presume that they are a subdirectory paths of the user's home folder.  If you wish to customize this to be in some other location, then you will need to make the necessary changes to main().
-
 <BR>
+
 ## Conclusion
 I hope you have enjoyed reading through this tutorial.  My goals in writing this tutorial were to:
 
@@ -1936,4 +1936,3 @@ I hope you have enjoyed reading through this tutorial.  My goals in writing this
 
 Feel free to play around with the code or concepts presented in this tutorial.  If you decide extend it, I would enjoy hearing about your experience and seeing what you built.  :-) 
  
-
