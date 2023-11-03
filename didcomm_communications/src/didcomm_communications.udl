@@ -1,0 +1,58 @@
+interface KeyPair {
+    constructor(string initial_private_key);
+    string get_public_key();
+    string get_private_key();
+    string get_did();
+};
+
+namespace didcomm_communications {
+
+    KeyPair generate_key_pair(string initial_private_key);
+
+    string encrypt_file_i16(
+        string sender_did, 
+        string sender_private_key, 
+        string recipient_did, 
+        string recipient_public_key, 
+        string filename,
+        sequence<i16> file_data,
+        string source_root,
+        string dest_root);
+
+    string encrypt_file_i8(
+        string sender_did, 
+        string sender_private_key, 
+        string recipient_did, 
+        string recipient_public_key, 
+        string filename,
+        sequence<i8> file_data,
+        string source_root,
+        string dest_root);
+
+    string encrypt_file_u8(
+        string sender_did, 
+        string sender_private_key, 
+        string recipient_did, 
+        string recipient_public_key, 
+        string filename,
+        sequence<u8> file_data,
+        string source_root,
+        string dest_root);
+
+    string decrypt_file_message(
+        string filename,
+        string private_key,
+        string public_key,
+        string dest_root);
+
+    void delete_plaintext_file(
+        string sender_did,
+        string filename,
+        string source_root,
+        string dest_root);
+
+    void delete_encrypted_file(
+        string filename,
+        string source_root,
+        string dest_root);
+};
